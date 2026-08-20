@@ -5,6 +5,17 @@ project(ProjectEventBus
     LANGUAGES CXX
 )
 
+option(
+    LUNAFORGE_EVENTHANDLER_BUILD_EXAMPLES
+    "Build Lunaforge EventHandler examples"
+    ON
+)
+
+option(
+    LUNAFORGE_EVENTHANDLER_BUILD_TESTS
+    "Build Lunaforge EventHandler tests"
+    ON
+)
 
 # -----------------------
 # External libraries
@@ -39,33 +50,39 @@ target_include_directories(ProjectEventBus
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(EventBusExample
-    examples/BasicExample.cpp
-)
+# -----------------------
+# Examples
+# -----------------------
+if(LUNAFORGE_EVENTHANDLER_BUILD_EXAMPLES)
+    add_executable(EventBusExample
+        examples/BasicExample.cpp
+    )
 
-target_link_libraries(EventBusExample
-    PRIVATE
-        Lunaforge::EventHandler
-)
+    target_link_libraries(EventBusExample
+        PRIVATE
+            Lunaforge::EventHandler
+    )
+endif()
 
 # -----------------------
 # Tests
 # -----------------------
 
+if(LUNAFORGE_EVENTHANDLER_BUILD_TESTS)
+    enable_testing()
 
-enable_testing()
+    add_executable(EventBusTests
+        tests/EventBusTests.cpp
+    )
 
-add_executable(EventBusTests
-    tests/EventBusTests.cpp
-)
+    target_link_libraries(EventBusTests
+        PRIVATE
+            Lunaforge::EventHandler
+            Catch2::Catch2WithMain
+    )
 
-target_link_libraries(EventBusTests
-    PRIVATE
-        Lunaforge::EventHandler
-        Catch2::Catch2WithMain
-)
+    include(CTest)
+    include(Catch)
 
-include(CTest)
-include(Catch)
-
-catch_discover_tests(EventBusTests)
+    catch_discover_tests(EventBusTests)
+endif()
