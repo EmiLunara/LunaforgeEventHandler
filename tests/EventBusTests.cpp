@@ -218,3 +218,102 @@ TEST_CASE("Move assigning a subscription releases the previous subscription")
     REQUIRE(FirstCallCount == 0);
     REQUIRE(SecondCallCount == 1);
 }
+
+TEST_CASE("A subscriber can unsubscribe itself during event dispatch")
+{
+    EventBus Bus;
+
+    int CallCount = 0;
+
+    Subscription SelfSubscription;
+
+    SelfSubscription = Bus.Subscribe<TestEvent>(
+        [&](const TestEvent&)
+        {
+            ++CallCount;
+            SelfSubscription.Reset();
+        }
+    );
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(CallCount == 1);
+    REQUIRE_FALSE(SelfSubscription.IsValid());
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(CallCount == 1);
+}
+
+TEST_CASE("A subscriber added during dispatch is not called until the next publish")
+{
+    EventBus Bus;
+
+    int FirstCallCount = 0;
+    int SecondCallCount = 0;
+
+    Subscription SecondSubscription;
+
+    auto FirstSubscription = Bus.Subscribe<TestEvent>(
+        [&](const TestEvent&)
+        {
+            ++FirstCallCount;
+
+            if(!SecondSubscription.IsValid())
+            {
+                SecondSubscription = Bus.Subscribe<TestEvent>(
+                    [&](const TestEvent&)
+                    {
+                        ++SecondCallCount;
+                    }
+                );
+            }
+        }
+    );
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(FirstCallCount == 1);
+    REQUIRE(SecondCallCount == 0);
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(FirstCallCount == 2);
+    REQUIRE(SecondCallCount == 1);
+}
+
+TEST_CASE("A subscriber removed during dispatch is not called")
+{
+    EventBus Bus;
+
+    int FirstCallCount = 0;
+    int SecondCallCount = 0;
+
+    Subscription SecondSubscription;
+
+    auto FirstSubscription = Bus.Subscribe<TestEvent>(
+        [&](const TestEvent&)
+        {
+            ++FirstCallCount;
+
+           SecondSubscription.Reset();
+        }
+    );
+
+    SecondSubscription = Bus.Subscribe<TestEvent>(
+        [&](const TestEvent&)
+        {
+            ++SecondCallCount;
+        }
+    );
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(FirstCallCount == 1);
+    REQUIRE(SecondCallCount == 0);
+
+    Bus.Publish(TestEvent{42});
+
+    REQUIRE(FirstCallCount == 2);
+    REQUIRE(SecondCallCount == 0);
+}

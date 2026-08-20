@@ -45,9 +45,38 @@ namespace Lunaforge::Events
                 return;
             }
 
+            std::vector<std::uint64_t> SubscriberIds;
+            SubscriberIds.reserve(it->second.size());
+
             for(const auto& Entry : it->second)
             {
-                Entry.Function(&Event);
+                SubscriberIds.push_back(Entry.Id);
+            }
+
+            for(const std::uint64_t Id : SubscriberIds)
+            {
+                const auto CurrentId = m_Subscribers.find(typeid(TEvent));
+
+                if(CurrentId == m_Subscribers.end())
+                {
+                    break;
+                }
+
+                auto& Subscribers = CurrentId->second;
+
+                const auto SubscriberIt = std::find_if(Subscribers.begin(), Subscribers.end(),
+                    [Id](const Subscriber& Entry)
+                {
+                    return Entry.Id == Id;
+                });
+
+                if(SubscriberIt == Subscribers.end())
+                {
+                    continue;
+                }
+
+                auto Callback = SubscriberIt->Function;
+                Callback(&Event);
             }
         }
 
