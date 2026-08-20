@@ -312,3 +312,8 @@ Current development target:
 **Lunaforge EventHandler v0.1.0**
 
 The goal of v0.1.0 is to provide a small, predictable, and reusable synchronous event system suitable for use as a foundation in other Lunaforge projects.
+
+## License
+
+Lunaforge EventHandler is available under the MIT License.
+See `LICENSE` for details.
