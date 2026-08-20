@@ -1,0 +1,19 @@
+# Build output
+/build/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Visual Studio
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
